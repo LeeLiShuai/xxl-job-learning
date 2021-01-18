@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * 获取任务的线程
  * @author xuxueli 2019-05-21
  */
 public class JobScheduleHelper {
@@ -42,6 +43,7 @@ public class JobScheduleHelper {
             public void run() {
 
                 try {
+                    //每隔4-5秒执行一次
                     TimeUnit.MILLISECONDS.sleep(5000 - System.currentTimeMillis()%1000 );
                 } catch (InterruptedException e) {
                     if (!scheduleThreadToStop) {
@@ -76,12 +78,13 @@ public class JobScheduleHelper {
 
                         // 1、pre read
                         long nowTime = System.currentTimeMillis();
+                        //获取六百个任务
                         List<XxlJobInfo> scheduleList = XxlJobAdminConfig.getAdminConfig().getXxlJobInfoDao().scheduleJobQuery(nowTime + PRE_READ_MS, preReadCount);
                         if (scheduleList!=null && scheduleList.size()>0) {
                             // 2、push time-ring
                             for (XxlJobInfo jobInfo: scheduleList) {
 
-                                // time-ring jump
+                                //下次执行时间+5s比当前时间小，已经延期太久，不再执行，刷新下载执行时间
                                 if (nowTime > jobInfo.getTriggerNextTime() + PRE_READ_MS) {
                                     // 2.1、trigger-expire > 5s：pass && make next-trigger-time
                                     logger.warn(">>>>>>>>>>> xxl-job, schedule misfire, jobId = " + jobInfo.getId());
@@ -89,7 +92,8 @@ public class JobScheduleHelper {
                                     // fresh next
                                     refreshNextValidTime(jobInfo, new Date());
 
-                                } else if (nowTime > jobInfo.getTriggerNextTime()) {
+                                }//已经过了执行时间，但是没有超过5s,执行一次，刷新下次执行时间，如果再下一次的执行时间在5s内，放入ring中
+                                else if (nowTime > jobInfo.getTriggerNextTime()) {
                                     // 2.2、trigger-expire < 5s：direct-trigger && make next-trigger-time
 
                                     // 1、trigger
@@ -113,7 +117,8 @@ public class JobScheduleHelper {
 
                                     }
 
-                                } else {
+                                }//没到执行时间，放入ring中
+                                else {
                                     // 2.3、trigger-pre-read：time-ring trigger && make next-trigger-time
 
                                     // 1、make ring second
@@ -227,6 +232,7 @@ public class JobScheduleHelper {
                     try {
                         // second data
                         List<Integer> ringItemData = new ArrayList<>();
+                        //当前的秒数,取当前秒数加前两秒的数据，然后执行
                         int nowSecond = Calendar.getInstance().get(Calendar.SECOND);   // 避免处理耗时太长，跨过刻度，向前校验一个刻度；
                         for (int i = 0; i < 2; i++) {
                             List<Integer> tmpData = ringData.remove( (nowSecond+60-i)%60 );
@@ -254,6 +260,7 @@ public class JobScheduleHelper {
 
                     // next second, align second
                     try {
+                        //每0-1秒执行一次
                         TimeUnit.MILLISECONDS.sleep(1000 - System.currentTimeMillis()%1000);
                     } catch (InterruptedException e) {
                         if (!ringThreadToStop) {

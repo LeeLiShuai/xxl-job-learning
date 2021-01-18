@@ -13,33 +13,37 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
+ * 调度器
  * @author xuxueli 2018-10-28 00:18:17
  */
 
 public class XxlJobScheduler  {
     private static final Logger logger = LoggerFactory.getLogger(XxlJobScheduler.class);
 
-
+    /**
+     * 调度器初始化
+     * @throws Exception
+     */
     public void init() throws Exception {
-        // init i18n
+        //国际化
         initI18n();
 
-        // admin registry monitor run
+        //执行器是否存活检测线程
         JobRegistryMonitorHelper.getInstance().start();
 
-        // admin fail-monitor run
+        //执行失败的任务重试线程
         JobFailMonitorHelper.getInstance().start();
 
-        // admin lose-monitor run
+        //调度记录停留在 "运行中" 状态超过10min，且对应执行器心跳注册失败不在线，则将本地调度主动标记失败的线程
         JobLosedMonitorHelper.getInstance().start();
 
-        // admin trigger pool start
+        //执行调度任务的线程
         JobTriggerPoolHelper.toStart();
 
-        // admin log report start
+        //报表线程
         JobLogReportHelper.getInstance().start();
 
-        // start-schedule
+        //获取任务的线程
         JobScheduleHelper.getInstance().start();
 
         logger.info(">>>>>>>>> init xxl-job admin success.");

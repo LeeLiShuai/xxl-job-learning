@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * job trigger thread pool helper
- *
+ * 任务调度线程
  * @author xuxueli 2018-07-03 21:08:07
  */
 public class JobTriggerPoolHelper {
@@ -67,7 +67,7 @@ public class JobTriggerPoolHelper {
 
 
     /**
-     * add trigger
+     * 添加一个执行的任务
      */
     public void addTrigger(final int jobId,
                            final TriggerTypeEnum triggerType,
@@ -91,7 +91,7 @@ public class JobTriggerPoolHelper {
                 long start = System.currentTimeMillis();
 
                 try {
-                    // do trigger
+                    //实际调用任务
                     XxlJobTrigger.trigger(jobId, triggerType, failRetryCount, executorShardingParam, executorParam, addressList);
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
