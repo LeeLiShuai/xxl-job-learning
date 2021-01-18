@@ -22,11 +22,19 @@ import java.util.Date;
 public class ExecutorBizImpl implements ExecutorBiz {
     private static Logger logger = LoggerFactory.getLogger(ExecutorBizImpl.class);
 
+    /**
+     * 处理调度器发送的心跳检测，直接返回成功
+     * @return
+     */
     @Override
     public ReturnT<String> beat() {
         return ReturnT.SUCCESS;
     }
 
+    /**
+     * 处理调度器发送的是否空闲的心跳检测，判断次执行器是否在执行对应的任务，或组合是否有此类型的任务在等待执行
+     * @return
+     */
     @Override
     public ReturnT<String> idleBeat(IdleBeatParam idleBeatParam) {
 
@@ -43,6 +51,10 @@ public class ExecutorBizImpl implements ExecutorBiz {
         return ReturnT.SUCCESS;
     }
 
+    /**
+     * 处理调度器发送的执行具体任务的请求
+     * @return
+     */
     @Override
     public ReturnT<String> run(TriggerParam triggerParam) {
         // load old：jobHandler + jobThread
@@ -148,6 +160,10 @@ public class ExecutorBizImpl implements ExecutorBiz {
         return pushResult;
     }
 
+    /**
+     * 终止任务
+     * @return
+     */
     @Override
     public ReturnT<String> kill(KillParam killParam) {
         // kill handlerThread, and create new one
@@ -160,6 +176,10 @@ public class ExecutorBizImpl implements ExecutorBiz {
         return new ReturnT<String>(ReturnT.SUCCESS_CODE, "job thread already killed.");
     }
 
+    /**
+     * 查看日志
+     * @return
+     */
     @Override
     public ReturnT<LogResult> log(LogParam logParam) {
         // log filename: logPath/yyyy-MM-dd/9999.log

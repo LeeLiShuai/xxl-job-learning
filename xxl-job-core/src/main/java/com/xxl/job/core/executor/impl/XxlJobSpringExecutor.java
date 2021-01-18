@@ -21,13 +21,16 @@ import java.util.Map;
 
 /**
  * xxl-job executor (for spring)
- *
+ * 集成spring的执行器
  * @author xuxueli 2018-11-01 09:24:52
  */
 public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationContextAware, SmartInitializingSingleton, DisposableBean {
     private static final Logger logger = LoggerFactory.getLogger(XxlJobSpringExecutor.class);
 
 
+    /**
+     * 初始化方法
+     */
     // start
     @Override
     public void afterSingletonsInstantiated() {
@@ -35,6 +38,9 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
         // init JobHandler Repository
         /*initJobHandlerRepository(applicationContext);*/
 
+        /**
+         * 扫描所有具体的业务逻辑方法
+         */
         // init JobHandler Repository (for method)
         initJobHandlerMethodRepository(applicationContext);
 
@@ -43,6 +49,7 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
 
         // super start
         try {
+            //调用父类的初始化方法
             super.start();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -82,11 +89,11 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
         if (applicationContext == null) {
             return;
         }
-        // init job handler from method
+        //获取所有bean
         String[] beanDefinitionNames = applicationContext.getBeanNamesForType(Object.class, false, true);
         for (String beanDefinitionName : beanDefinitionNames) {
             Object bean = applicationContext.getBean(beanDefinitionName);
-
+            //筛选带有XxlJob注解的方法
             Map<Method, XxlJob> annotatedMethods = null;   // referred to ：org.springframework.context.event.EventListenerMethodProcessor.processBean
             try {
                 annotatedMethods = MethodIntrospector.selectMethods(bean.getClass(),
@@ -102,7 +109,7 @@ public class XxlJobSpringExecutor extends XxlJobExecutor implements ApplicationC
             if (annotatedMethods==null || annotatedMethods.isEmpty()) {
                 continue;
             }
-
+            //将方法注册到XxlJobExecutor中的map
             for (Map.Entry<Method, XxlJob> methodXxlJobEntry : annotatedMethods.entrySet()) {
                 Method method = methodXxlJobEntry.getKey();
                 XxlJob xxlJob = methodXxlJobEntry.getValue();

@@ -24,7 +24,7 @@ import java.util.concurrent.*;
 
 /**
  * Copy from : https://github.com/xuxueli/xxl-rpc
- *
+ * 执行器的netty服务
  * @author xuxueli 2020-04-11 21:25
  */
 public class EmbedServer {
@@ -34,6 +34,7 @@ public class EmbedServer {
     private Thread thread;
 
     public void start(final String address, final int port, final String appname, final String accessToken) {
+        //执行器执行调度器的请求逻辑
         executorBiz = new ExecutorBizImpl();
         thread = new Thread(new Runnable() {
 
@@ -129,10 +130,7 @@ public class EmbedServer {
     // ---------------------- registry ----------------------
 
     /**
-     * netty_http
-     *
-     * Copy from : https://github.com/xuxueli/xxl-rpc
-     *
+     * netty服务其中具体执行业务逻辑的Handler
      * @author xuxueli 2015-11-24 22:25:15
      */
     public static class EmbedHttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
@@ -174,6 +172,14 @@ public class EmbedServer {
             });
         }
 
+        /**
+         * 具体的处理逻辑
+         * @param httpMethod
+         * @param uri
+         * @param requestData
+         * @param accessTokenReq
+         * @return
+         */
         private Object process(HttpMethod httpMethod, String uri, String requestData, String accessTokenReq) {
 
             // valid
@@ -191,18 +197,27 @@ public class EmbedServer {
 
             // services mapping
             try {
+                //心跳
                 if ("/beat".equals(uri)) {
                     return executorBiz.beat();
-                } else if ("/idleBeat".equals(uri)) {
+                }
+                //是否空闲的心跳
+                else if ("/idleBeat".equals(uri)) {
                     IdleBeatParam idleBeatParam = GsonTool.fromJson(requestData, IdleBeatParam.class);
                     return executorBiz.idleBeat(idleBeatParam);
-                } else if ("/run".equals(uri)) {
+                }
+                //执行任务
+                else if ("/run".equals(uri)) {
                     TriggerParam triggerParam = GsonTool.fromJson(requestData, TriggerParam.class);
                     return executorBiz.run(triggerParam);
-                } else if ("/kill".equals(uri)) {
+                }
+                //终止任务
+                else if ("/kill".equals(uri)) {
                     KillParam killParam = GsonTool.fromJson(requestData, KillParam.class);
                     return executorBiz.kill(killParam);
-                } else if ("/log".equals(uri)) {
+                }
+                //查看日志
+                else if ("/log".equals(uri)) {
                     LogParam logParam = GsonTool.fromJson(requestData, LogParam.class);
                     return executorBiz.log(logParam);
                 } else {

@@ -53,7 +53,7 @@ public class TriggerCallbackThread {
             return;
         }
 
-        // callback
+        //回调的线程，从阻塞队列中取出元素，并向所有的调度器发送执行结果
         triggerCallbackThread = new Thread(new Runnable() {
 
             @Override

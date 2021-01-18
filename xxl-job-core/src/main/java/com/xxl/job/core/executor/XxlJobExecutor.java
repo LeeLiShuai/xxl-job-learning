@@ -64,20 +64,19 @@ public class XxlJobExecutor  {
     // ---------------------- start + stop ----------------------
     public void start() throws Exception {
 
-        // init logpath
+        //初始化日志路径，执行时打印的日志保存在执行器
         XxlJobFileAppender.initLogPath(logPath);
 
-        // init invoker, admin-client
+        //向所有的调度器注册
         initAdminBizList(adminAddresses, accessToken);
 
-
-        // init JobLogFileCleanThread
+        //清理日志的线程
         JobLogFileCleanThread.getInstance().start(logRetentionDays);
 
-        // init TriggerCallbackThread
+        //业务逻辑执行完之后，回调调度器
         TriggerCallbackThread.getInstance().start();
 
-        // init executor-server
+        //初始化netty服务器
         initEmbedServer(address, ip, port, appname, accessToken);
     }
     public void destroy(){
@@ -135,6 +134,15 @@ public class XxlJobExecutor  {
     // ---------------------- executor-server (rpc provider) ----------------------
     private EmbedServer embedServer = null;
 
+    /**
+     * 初始化netty服务器
+     * @param address
+     * @param ip
+     * @param port
+     * @param appname
+     * @param accessToken
+     * @throws Exception
+     */
     private void initEmbedServer(String address, String ip, int port, String appname, String accessToken) throws Exception {
 
         // fill ip port

@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 /**
- * job file clean thread
+ * 执行器清理日志的线程
  *
  * @author xuxueli 2017-12-29 16:23:43
  */
@@ -29,7 +29,7 @@ public class JobLogFileCleanThread {
     private volatile boolean toStop = false;
     public void start(final long logRetentionDays){
 
-        // limit min value
+        //最小也要保存三天的日志
         if (logRetentionDays < 3 ) {
             return;
         }
