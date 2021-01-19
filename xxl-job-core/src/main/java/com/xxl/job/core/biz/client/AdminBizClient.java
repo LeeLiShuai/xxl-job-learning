@@ -9,8 +9,7 @@ import com.xxl.job.core.util.XxlJobRemotingUtil;
 import java.util.List;
 
 /**
- * admin api test
- *
+ * 执行器回调调度器
  * @author xuxueli 2017-07-28 22:14:52
  */
 public class AdminBizClient implements AdminBiz {

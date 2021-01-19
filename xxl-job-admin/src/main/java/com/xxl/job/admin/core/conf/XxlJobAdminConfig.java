@@ -33,7 +33,7 @@ public class XxlJobAdminConfig implements InitializingBean, DisposableBean {
     private XxlJobScheduler xxlJobScheduler;
 
     /**
-     * 初始化是调用
+     * 初始化时调用
      * @throws Exception
      */
     @Override

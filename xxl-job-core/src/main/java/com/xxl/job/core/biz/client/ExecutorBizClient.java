@@ -5,8 +5,7 @@ import com.xxl.job.core.biz.model.*;
 import com.xxl.job.core.util.XxlJobRemotingUtil;
 
 /**
- * admin api test
- *
+ * 调度器调用执行器
  * @author xuxueli 2017-07-28 22:14:52
  */
 public class ExecutorBizClient implements ExecutorBiz {

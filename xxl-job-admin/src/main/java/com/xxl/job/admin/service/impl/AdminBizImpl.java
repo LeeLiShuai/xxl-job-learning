@@ -41,6 +41,11 @@ public class AdminBizImpl implements AdminBiz {
     private XxlJobGroupDao xxlJobGroupDao;
 
 
+    /**
+     * 调度器接收执行器的回调，保存执行结果，返回成功
+     * @param callbackParamList
+     * @return
+     */
     @Override
     public ReturnT<String> callback(List<HandleCallbackParam> callbackParamList) {
         for (HandleCallbackParam handleCallbackParam: callbackParamList) {
@@ -52,8 +57,13 @@ public class AdminBizImpl implements AdminBiz {
         return ReturnT.SUCCESS;
     }
 
+    /**
+     * 处理回调
+     * @param handleCallbackParam
+     * @return
+     */
     private ReturnT<String> callback(HandleCallbackParam handleCallbackParam) {
-        // valid log item
+        //获取对应的log
         XxlJobLog log = xxlJobLogDao.load(handleCallbackParam.getLogId());
         if (log == null) {
             return new ReturnT<String>(ReturnT.FAIL_CODE, "log item not found.");
@@ -62,7 +72,7 @@ public class AdminBizImpl implements AdminBiz {
             return new ReturnT<String>(ReturnT.FAIL_CODE, "log repeate callback.");     // avoid repeat callback, trigger child job etc
         }
 
-        // trigger success, to trigger child job
+        //执行成功，查看是否有子任务，执行子任务
         String callbackMsg = null;
         if (IJobHandler.SUCCESS.getCode() == handleCallbackParam.getExecuteResult().getCode()) {
             XxlJobInfo xxlJobInfo = xxlJobInfoDao.loadById(log.getJobId());
@@ -95,7 +105,7 @@ public class AdminBizImpl implements AdminBiz {
             }
         }
 
-        // handle msg
+        //保存信息
         StringBuffer handleMsg = new StringBuffer();
         if (log.getHandleMsg()!=null) {
             handleMsg.append(log.getHandleMsg()).append("<br>");
@@ -116,7 +126,6 @@ public class AdminBizImpl implements AdminBiz {
         log.setHandleCode(handleCallbackParam.getExecuteResult().getCode());
         log.setHandleMsg(handleMsg.toString());
         xxlJobLogDao.updateHandleInfo(log);
-
         return ReturnT.SUCCESS;
     }
 
@@ -129,6 +138,11 @@ public class AdminBizImpl implements AdminBiz {
         }
     }
 
+    /**
+     * 处理执行器发送的注册请求，先更新，没有更新成功，则插入
+     * @param registryParam
+     * @return
+     */
     @Override
     public ReturnT<String> registry(RegistryParam registryParam) {
 
@@ -149,6 +163,11 @@ public class AdminBizImpl implements AdminBiz {
         return ReturnT.SUCCESS;
     }
 
+    /**
+     * 处理执行器的下线请求，直接从数据库中删除
+     * @param registryParam
+     * @return
+     */
     @Override
     public ReturnT<String> registryRemove(RegistryParam registryParam) {
 
@@ -158,7 +177,6 @@ public class AdminBizImpl implements AdminBiz {
                 || !StringUtils.hasText(registryParam.getRegistryValue())) {
             return new ReturnT<String>(ReturnT.FAIL_CODE, "Illegal Argument.");
         }
-
         int ret = xxlJobRegistryDao.registryDelete(registryParam.getRegistryGroup(), registryParam.getRegistryKey(), registryParam.getRegistryValue());
         if (ret > 0) {
 
