@@ -29,11 +29,11 @@ public class TriggerCallbackThread {
     public static TriggerCallbackThread getInstance(){
         return instance;
     }
+    private LinkedBlockingQueue<HandleCallbackParam> callBackQueue = new LinkedBlockingQueue<HandleCallbackParam>();
 
     /**
-     * job results callback queue
+     * 推送回调结果到回调线程，添加到队列中
      */
-    private LinkedBlockingQueue<HandleCallbackParam> callBackQueue = new LinkedBlockingQueue<HandleCallbackParam>();
     public static void pushCallBack(HandleCallbackParam callback){
         getInstance().callBackQueue.add(callback);
         logger.debug(">>>>>>>>>>> xxl-job, push callback request, logId:{}", callback.getLogId());
@@ -45,6 +45,10 @@ public class TriggerCallbackThread {
     private Thread triggerCallbackThread;
     private Thread triggerRetryCallbackThread;
     private volatile boolean toStop = false;
+
+    /**
+     * 回调线程启动
+     */
     public void start() {
 
         // valid
@@ -62,6 +66,7 @@ public class TriggerCallbackThread {
                 // normal callback
                 while(!toStop){
                     try {
+                        //使用take阻塞的方式取出元素
                         HandleCallbackParam callback = getInstance().callBackQueue.take();
                         if (callback != null) {
 

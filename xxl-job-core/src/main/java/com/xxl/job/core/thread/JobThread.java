@@ -21,15 +21,18 @@ import java.util.concurrent.*;
 
 
 /**
- * handler thread
+ * 具体处理每个任务的线程，每个handler对应一个
  * @author xuxueli 2016-1-16 19:52:47
  */
 public class JobThread extends Thread{
 	private static Logger logger = LoggerFactory.getLogger(JobThread.class);
-
+	//对应的任务id
 	private int jobId;
+	//对应的handler
 	private IJobHandler handler;
+	//阻塞队列
 	private LinkedBlockingQueue<TriggerParam> triggerQueue;
+	//执行的器的logId的集合
 	private Set<Long> triggerLogIdSet;		// avoid repeat trigger for the same TRIGGER_LOG_ID
 
 	private volatile boolean toStop = false;
@@ -50,7 +53,7 @@ public class JobThread extends Thread{
 	}
 
     /**
-     * new trigger to queue
+     * 执行run方法时，把任务先存入阻塞队列中
      *
      * @param triggerParam
      * @return
@@ -83,7 +86,7 @@ public class JobThread extends Thread{
 	}
 
     /**
-     * is running job
+     * 判断是否有任务正在执行或者队列中有元素
      * @return
      */
     public boolean isRunningOrHasQueue() {
@@ -108,6 +111,7 @@ public class JobThread extends Thread{
             TriggerParam triggerParam = null;
             ReturnT<String> executeResult = null;
             try {
+				// 为了响应toStop的变化，不能使用阻塞的take,使用等待时间的poll,从阻塞队列中取出一个元素
 				// to check toStop signal, we need cycle, so wo cannot use queue.take(), instand of poll(timeout)
 				triggerParam = triggerQueue.poll(3L, TimeUnit.SECONDS);
 				if (triggerParam!=null) {
@@ -115,14 +119,14 @@ public class JobThread extends Thread{
 					idleTimes = 0;
 					triggerLogIdSet.remove(triggerParam.getLogId());
 
-					// log filename, like "logPath/yyyy-MM-dd/9999.log"
+					//日志文件
 					String logFileName = XxlJobFileAppender.makeLogFileName(new Date(triggerParam.getLogDateTime()), triggerParam.getLogId());
 					XxlJobFileAppender.contextHolder.set(logFileName);
 					ShardingUtil.setShardingVo(new ShardingUtil.ShardingVO(triggerParam.getBroadcastIndex(), triggerParam.getBroadcastTotal()));
 
-					// execute
+					//开始执行
 					XxlJobLogger.log("<br>----------- xxl-job job execute start -----------<br>----------- Param:" + triggerParam.getExecutorParams());
-
+					//有超时时间，用futureTask处理，没有超市时间的直接调用处理
 					if (triggerParam.getExecutorTimeout() > 0) {
 						// limit timeout
 						Thread futureThread = null;
@@ -185,7 +189,7 @@ public class JobThread extends Thread{
                 if(triggerParam != null) {
                     // callback handler info
                     if (!toStop) {
-                        // commonm
+                        //最终，把执行结果推送到回调线程
                         TriggerCallbackThread.pushCallBack(new HandleCallbackParam(triggerParam.getLogId(), triggerParam.getLogDateTime(), executeResult));
                     } else {
                         // is killed

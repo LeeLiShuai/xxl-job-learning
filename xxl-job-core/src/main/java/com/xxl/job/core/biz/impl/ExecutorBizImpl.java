@@ -57,7 +57,7 @@ public class ExecutorBizImpl implements ExecutorBiz {
      */
     @Override
     public ReturnT<String> run(TriggerParam triggerParam) {
-        // load old：jobHandler + jobThread
+        //根据jobId获取对应的JobThread
         JobThread jobThread = XxlJobExecutor.loadJobThread(triggerParam.getJobId());
         IJobHandler jobHandler = jobThread!=null?jobThread.getHandler():null;
         String removeOldReason = null;
@@ -66,7 +66,7 @@ public class ExecutorBizImpl implements ExecutorBiz {
         GlueTypeEnum glueTypeEnum = GlueTypeEnum.match(triggerParam.getGlueType());
         if (GlueTypeEnum.BEAN == glueTypeEnum) {
 
-            // new jobhandler
+            //对应的处理业务的Handler
             IJobHandler newJobHandler = XxlJobExecutor.loadJobHandler(triggerParam.getExecutorHandler());
 
             // valid old jobThread
@@ -130,32 +130,34 @@ public class ExecutorBizImpl implements ExecutorBiz {
             return new ReturnT<String>(ReturnT.FAIL_CODE, "glueType[" + triggerParam.getGlueType() + "] is not valid.");
         }
 
-        // executor block strategy
+        //根据阻塞策略执行不同逻辑
         if (jobThread != null) {
             ExecutorBlockStrategyEnum blockStrategy = ExecutorBlockStrategyEnum.match(triggerParam.getExecutorBlockStrategy(), null);
             if (ExecutorBlockStrategyEnum.DISCARD_LATER == blockStrategy) {
-                // discard when running
+                // 丢弃后续调度
                 if (jobThread.isRunningOrHasQueue()) {
                     return new ReturnT<String>(ReturnT.FAIL_CODE, "block strategy effect："+ExecutorBlockStrategyEnum.DISCARD_LATER.getTitle());
                 }
             } else if (ExecutorBlockStrategyEnum.COVER_EARLY == blockStrategy) {
-                // kill running jobThread
+                //覆盖之前调度
                 if (jobThread.isRunningOrHasQueue()) {
                     removeOldReason = "block strategy effect：" + ExecutorBlockStrategyEnum.COVER_EARLY.getTitle();
 
                     jobThread = null;
                 }
             } else {
+                //单机串行，什么都不做
                 // just queue trigger
             }
         }
 
         // replace thread (new or exists invalid)
         if (jobThread == null) {
+            //注册一个jobThread并启动
             jobThread = XxlJobExecutor.registJobThread(triggerParam.getJobId(), jobHandler, removeOldReason);
         }
 
-        // push data to queue
+        //将任务推送给阻塞队列中
         ReturnT<String> pushResult = jobThread.pushTriggerQueue(triggerParam);
         return pushResult;
     }
