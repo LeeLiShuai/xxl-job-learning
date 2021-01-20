@@ -11,6 +11,7 @@ import com.xxl.job.core.biz.model.TriggerParam;
 import java.util.List;
 
 /**
+ * 路由策略 忙碌转移，遍历路由，发送空闲心跳检测，找到一个返回空闲的
  * Created by xuxueli on 17/3/10.
  */
 public class ExecutorRouteBusyover extends ExecutorRouter {

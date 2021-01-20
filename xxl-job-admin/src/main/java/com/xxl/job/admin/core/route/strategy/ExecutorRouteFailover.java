@@ -10,6 +10,7 @@ import com.xxl.job.core.biz.model.TriggerParam;
 import java.util.List;
 
 /**
+ * 路由策略 故障转移，遍历执行器，心跳检测直到找到一个可用
  * Created by xuxueli on 17/3/10.
  */
 public class ExecutorRouteFailover extends ExecutorRouter {
